@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Asistencia Rápida — 2DO CONT A | U.E. Dr. Enrique Noboa Arízaga</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Ocultar barra de desplazamiento en carrusel de fechas sin perder scroll táctil */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Estilos de impresión horizontal impecables */
+    @media print {
+      @page {
+        size: A4 landscape;
+        margin: 8mm;
+      }
+      body {
+        background: #ffffff !important;
+        color: #0f172a !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-only {
+        display: block !important;
+      }
+      table.print-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 7.5pt;
+        line-height: 1.15;
+      }
+      table.print-table th,
+      table.print-table td {
+        border: 0.6pt solid #475569;
+        padding: 2px 3px;
+        text-align: center;
+      }
+      table.print-table th.student-col,
+      table.print-table td.student-col {
+        text-align: left;
+        white-space: nowrap;
+        padding-left: 5px;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-900 min-h-screen antialiased selection:bg-blue-600 selection:text-white">
+  <!-- Contenedor principal interactivo (se oculta al imprimir para mostrar la sábana horizontal limpia) -->
+  <div id="app-shell" class="no-print max-w-3xl mx-auto pb-28">
+    <!-- Encabezado institucional compacto -->
+    <header class="bg-slate-900 text-white px-4 pt-4 pb-3 shadow-md rounded-b-2xl">
+      <div class="flex items-start justify-between gap-2">
+        <div class="min-w-0">
+          <div class="flex flex-wrap items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-amber-300">
+            <span>U.E. "Dr. Enrique Noboa Arízaga"</span>
+            <span>•</span>
+            <span>2026–2027</span>
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 normal-case tracking-normal font-bold">
+              <span>●</span>
+              <span>Guardado en el celular · Sin internet</span>
+            </span>
+          </div>
+          <h1 class="text-base sm:text-lg font-extrabold tracking-tight truncate mt-0.5">
+            Asistencia 2do Bachillerato Contabilidad "A"
+          </h1>
+          <p class="text-xs text-slate-300 truncate">
+            Matemática • 3er Trimestre (Lun y Mar) • Msc. Edwin Lliguipuma E.
+          </p>
+        </div>
+        <button
+          id="btn-reset-data"
+          type="button"
+          title="Restaurar datos iniciales"
+          class="shrink-0 p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 text-xs font-semibold transition"
+        >
+          Reiniciar
+        </button>
+      </div>
+
+      <!-- Sección dedicada: Guardar / Exportar al llegar a casa -->
+      <div class="mt-3 pt-2.5 border-t border-slate-800">
+        <div class="flex items-center justify-between text-[11px] font-semibold text-slate-300 mb-2">
+          <span>🏠 Guardar / Exportar al llegar a casa</span>
+          <span id="last-saved-indicator" class="text-emerald-300 font-bold">Listo sin conexión</span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <button
+            id="btn-export-csv"
+            type="button"
+            class="min-h-[44px] flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] text-white text-xs font-bold shadow transition"
+          >
+            <span>📊</span>
+            <span>CSV (Excel)</span>
+          </button>
+          <button
+            id="btn-save-json"
+            type="button"
+            class="min-h-[44px] flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] text-white text-xs font-bold shadow transition"
+          >
+            <span>💾</span>
+            <span>Respaldo .JSON</span>
+          </button>
+          <button
+            id="btn-import-json"
+            type="button"
+            class="min-h-[44px] flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-[0.98] text-slate-950 text-xs font-extrabold shadow transition"
+          >
+            <span>📂</span>
+            <span>Importar .JSON</span>
+          </button>
+          <button
+            id="btn-print-horizontal"
+            type="button"
+            class="min-h-[44px] flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-[0.98] text-white text-xs font-bold shadow transition"
+          >
+            <span>🖨️</span>
+            <span>Imprimir Horiz.</span>
+          </button>
+        </div>
+        <input id="input-import-json" type="file" accept=".json,application/json" class="hidden" />
+      </div>
+    </header>
+
+    <!-- Selector horizontal de fechas (Lunes y Martes) -->
+    <section class="mt-3 px-3">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-2.5">
+        <div class="flex items-center justify-between gap-2 mb-2">
+          <button
+            id="btn-prev-date"
+            type="button"
+            aria-label="Fecha anterior"
+            class="w-11 h-11 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 flex items-center justify-center font-bold text-slate-700 text-lg transition"
+          >
+            ‹
+          </button>
+          <div class="text-center min-w-0">
+            <div id="active-date-label" class="text-sm sm:text-base font-extrabold text-slate-900 truncate">
+              Lunes 23/11/2026
+            </div>
+            <div id="active-date-sub" class="text-[11px] font-medium text-slate-500">
+              Sesión activa • Tercer Trimestre
+            </div>
+          </div>
+          <button
+            id="btn-next-date"
+            type="button"
+            aria-label="Fecha siguiente"
+            class="w-11 h-11 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 flex items-center justify-center font-bold text-slate-700 text-lg transition"
+          >
+            ›
+          </button>
+        </div>
+
+        <!-- Carrusel deslizable con el dedo -->
+        <div id="date-strip" class="flex gap-1.5 overflow-x-auto no-scrollbar pb-1"></div>
+      </div>
+    </section>
+
+    <!-- Contadores en vivo del día seleccionado + Acciones rápidas ("Todos P" / "Limpiar día") -->
+    <section class="mt-3 px-3">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-3">
+        <div class="grid grid-cols-5 gap-1.5 text-center">
+          <div class="rounded-xl bg-emerald-50 border border-emerald-200 py-1.5 px-1">
+            <div class="text-[10px] font-bold text-emerald-700 uppercase">Presentes</div>
+            <div id="count-p" class="text-base font-extrabold text-emerald-700">0</div>
+          </div>
+          <div class="rounded-xl bg-rose-50 border border-rose-200 py-1.5 px-1">
+            <div class="text-[10px] font-bold text-rose-700 uppercase">Faltas</div>
+            <div id="count-f" class="text-base font-extrabold text-rose-700">0</div>
+          </div>
+          <div class="rounded-xl bg-amber-50 border border-amber-200 py-1.5 px-1">
+            <div class="text-[10px] font-bold text-amber-700 uppercase">Atrasos</div>
+            <div id="count-a" class="text-base font-extrabold text-amber-700">0</div>
+          </div>
+          <div class="rounded-xl bg-sky-50 border border-sky-200 py-1.5 px-1">
+            <div class="text-[10px] font-bold text-sky-700 uppercase">Justif.</div>
+            <div id="count-j" class="text-base font-extrabold text-sky-700">0</div>
+          </div>
+          <div class="rounded-xl bg-slate-100 border border-slate-200 py-1.5 px-1">
+            <div class="text-[10px] font-bold text-slate-600 uppercase">Sin mar.</div>
+            <div id="count-u" class="text-base font-extrabold text-slate-800">21</div>
+          </div>
+        </div>
+
+        <!-- Botones de acción masiva con 1 toque -->
+        <div id="quick-actions" class="grid grid-cols-2 gap-2 mt-2.5">
+          <button
+            id="btn-all-p"
+            type="button"
+            class="min-h-[46px] px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] text-white font-bold text-sm shadow-sm flex items-center justify-center gap-2 transition"
+          >
+            <span>✓</span>
+            <span>Todos P (Pendientes)</span>
+          </button>
+          <button
+            id="btn-clear-day"
+            type="button"
+            class="min-h-[46px] px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-[0.98] text-slate-700 border border-slate-300 font-bold text-sm flex items-center justify-center gap-2 transition"
+          >
+            <span>✕</span>
+            <span>Limpiar día</span>
+          </button>
+        </div>
+
+        <!-- Aviso de feriado cuando aplica -->
+        <div id="holiday-banner" class="hidden mt-2.5 p-3 rounded-xl bg-amber-100 border border-amber-300 text-amber-900 text-xs font-semibold text-center">
+          🎉 Feriado Nacional (Carnaval). No se registran asistencias en esta fecha.
+        </div>
+      </div>
+    </section>
+
+    <!-- Buscador rápido por nombre o número de lista -->
+    <section class="mt-3 px-3">
+      <div class="relative">
+        <input
+          id="search-input"
+          type="search"
+          placeholder="Buscar estudiante por nombre o N.º..."
+          class="w-full min-h-[46px] pl-10 pr-10 py-2.5 rounded-2xl bg-white border border-slate-300 text-sm font-medium text-slate-900 placeholder:text-slate-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+        />
+        <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">🔍</span>
+        <button
+          id="btn-clear-search"
+          type="button"
+          aria-label="Borrar búsqueda"
+          class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold flex items-center justify-center"
+        >
+          ✕
+        </button>
+      </div>
+    </section>
+
+    <!-- Lista de tarjetas táctiles de los 21 estudiantes -->
+    <main id="student-list" class="mt-3 px-3 space-y-2.5"></main>
+  </div>
+
+  <!-- Vista dedicada exclusivamente a impresión horizontal (A4 Landscape) -->
+  <section id="print-sheet" class="print-only hidden p-2">
+    <div class="flex items-center justify-between border-b-2 border-slate-800 pb-1.5 mb-2">
+      <div>
+        <div class="text-xs font-extrabold uppercase tracking-wide">
+          UNIDAD EDUCATIVA "DR. ENRIQUE NOBOA ARÍZAGA" — LA TRONCAL, CAÑAR, ECUADOR
+        </div>
+        <div class="text-[9.5px] font-semibold text-slate-700">
+          Año Lectivo: 2026–2027 • Tercer Trimestre • Bachillerato Técnico: 2do Contabilidad "A" (2DO CONT A) • Asignatura: Matemática • Jornada: Matutina
+        </div>
+      </div>
+      <div class="text-right text-[9.5px] font-bold">
+        <div>Docente: Msc. Edwin Lliguipuma E.</div>
+        <div>Lunes y Martes (26 Sesiones)</div>
+      </div>
+    </div>
+
+    <div id="print-table-container"></div>
+
+    <div class="mt-3 flex items-center justify-between text-[9px] font-semibold text-slate-700 pt-2">
+      <div>Simbología: <b>P</b> = Presente | <b>F</b> = Falta Injustificada | <b>A</b> = Atraso | <b>J</b> = Falta Justificada | <b>FER</b> = Feriado Carnaval</div>
+      <div class="flex gap-10 pr-4">
+        <span>____________________________<br/>Docente: Msc. Edwin Lliguipuma E.</span>
+        <span>____________________________<br/>Visto Bueno Vicerrectorado</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Barra inferior flotante de confirmación y estado -->
+  <div id="toast-bar" class="no-print fixed bottom-4 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 translate-y-3 transition-all duration-200 w-[92%] max-w-md">
+    <div id="toast-content" class="bg-slate-900 text-white text-xs sm:text-sm font-semibold px-4 py-3 rounded-2xl shadow-xl border border-slate-700 flex items-center justify-between gap-3">
+      <span id="toast-message">Guardado automáticamente</span>
+      <span id="toast-badge" class="text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold">OK</span>
+    </div>
+  </div>
+
+  <!-- Modal personalizado de confirmación (reemplaza confirm() para cumplir estrictamente las reglas) -->
+  <div id="confirm-modal" class="no-print hidden fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-[1px] flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-slate-200">
+      <h2 id="confirm-title" class="text-base font-extrabold text-slate-900">¿Confirmar acción?</h2>
+      <p id="confirm-desc" class="text-xs sm:text-sm text-slate-600 mt-1.5 leading-relaxed">
+        Esta acción modificará los registros actuales.
+      </p>
+      <div class="grid grid-cols-2 gap-2.5 mt-5">
+        <button
+          id="confirm-cancel"
+          type="button"
+          class="min-h-[46px] rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm transition"
+        >
+          Cancelar
+        </button>
+        <button
+          id="confirm-accept"
+          type="button"
+          class="min-h-[46px] rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm transition"
+        >
+          Sí, continuar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * Aplicación de Asistencia Táctil para Celular
+     * Unidad Educativa "Dr. Enrique Noboa Arízaga" - 2DO CONT A (Matemática)
+     */
+    (function () {
+      'use strict';
+
+      const STORAGE_KEY = 'asistencia_2do_cont_a_3t_2026_2027_v1';
+
+      // Nómina oficial de 21 estudiantes en orden estricto
+      const STUDENTS = [
+        { num: 1, name: 'AGUAYZA LEON MARLON UFREDO', phone: '' },
+        { num: 2, name: 'AREVALO CHAVEZ JOAN SEBASTIAN', phone: '' },
+        { num: 3, name: 'BAQUE CALLE SANTIAGO MATIAS', phone: '' },
+        { num: 4, name: 'CAICEDO CALIAS SEBASTIAN EMANUEL', phone: '' },
+        { num: 5, name: 'CALLE TACURI RICHARD PAUL', phone: '' },
+        { num: 6, name: 'CEDEÑO NAULA ELIZABETH FERNANDA', phone: '' },
+        { num: 7, name: 'CHUYA MANZANO ANGEL ALBERTO', phone: '' },
+        { num: 8, name: 'CONFORME VELEZ MAYBRI ALEXANDRA', phone: '' },
+        { num: 9, name: 'CORDOVA LEON CATALINA ANALIA', phone: '' },
+        { num: 10, name: 'DIAZ GUZMAN JOSSELINE LIZBETH', phone: '' },
+        { num: 11, name: 'FLORES HERNANDEZ NAHOMY LISSBETH', phone: '' },
+        { num: 12, name: 'JARRIN LLIGUICHUZHCA DOMENICA PAULETH', phone: '' },
+        { num: 13, name: 'LUCERO ULLOA GIAN MARCO', phone: '' },
+        { num: 14, name: 'PROAÑO RIVERA KERLYN ESTRELLA', phone: '' },
+        { num: 15, name: 'QUIÑONEZ ROMO LEROUX MICHAEL ALEXANDER', phone: '' },
+        { num: 16, name: 'SANCHEZ BARRERA RONALD STALIN', phone: '' },
+        { num: 17, name: 'SUCONOTA PEREZ MELANY FERNANDA', phone: '' },
+        { num: 18, name: 'TAPIA SARMIENTO MIGUEL HUMBERTO', phone: '' },
+        { num: 19, name: 'TRIVIÑO LEON BRITANNY SCARLETH', phone: '' },
+        { num: 20, name: 'VAZQUEZ GONZALEZ SOLANGE CRISTINA', phone: '0959733311' },
+        { num: 21, name: 'YOVERA SALCEDO DIANA GUADALUPE', phone: '' },
+      ];
+
+      // Fechas activas de lunes y martes del 3er Trimestre (16/11/2026 al 23/02/2027)
+      // Omitiendo 28/12 y 29/12 por receso navideño; marcando 08/02 y 09/02 como feriado de Carnaval
+      const DATES = [
+        { id: '2026-11-16', short: 'L 16/11', full: 'Lunes 16/11/2026', holiday: false },
+        { id: '2026-11-17', short: 'M 17/11', full: 'Martes 17/11/2026', holiday: false },
+        { id: '2026-11-23', short: 'L 23/11', full: 'Lunes 23/11/2026', holiday: false },
+        { id: '2026-11-24', short: 'M 24/11', full: 'Martes 24/11/2026', holiday: false },
+        { id: '2026-11-30', short: 'L 30/11', full: 'Lunes 30/11/2026', holiday: false },
+        { id: '2026-12-01', short: 'M 01/12', full: 'Martes 01/12/2026', holiday: false },
+        { id: '2026-12-07', short: 'L 07/12', full: 'Lunes 07/12/2026', holiday: false },
+        { id: '2026-12-08', short: 'M 08/12', full: 'Martes 08/12/2026', holiday: false },
+        { id: '2026-12-14', short: 'L 14/12', full: 'Lunes 14/12/2026', holiday: false },
+        { id: '2026-12-15', short: 'M 15/12', full: 'Martes 15/12/2026', holiday: false },
+        { id: '2026-12-21', short: 'L 21/12', full: 'Lunes 21/12/2026', holiday: false },
+        { id: '2026-12-22', short: 'M 22/12', full: 'Martes 22/12/2026', holiday: false },
+        { id: '2027-01-04', short: 'L 04/01', full: 'Lunes 04/01/2027', holiday: false },
+        { id: '2027-01-05', short: 'M 05/01', full: 'Martes 05/01/2027', holiday: false },
+        { id: '2027-01-11', short: 'L 11/01', full: 'Lunes 11/01/2027', holiday: false },
+        { id: '2027-01-12', short: 'M 12/01', full: 'Martes 12/01/2027', holiday: false },
+        { id: '2027-01-18', short: 'L 18/01', full: 'Lunes 18/01/2027', holiday: false },
+        { id: '2027-01-19', short: 'M 19/01', full: 'Martes 19/01/2027', holiday: false },
+        { id: '2027-01-25', short: 'L 25/01', full: 'Lunes 25/01/2027', holiday: false },
+        { id: '2027-01-26', short: 'M 26/01', full: 'Martes 26/01/2027', holiday: false },
+        { id: '2027-02-01', short: 'L 01/02', full: 'Lunes 01/02/2027', holiday: false },
+        { id: '2027-02-02', short: 'M 02/02', full: 'Martes 02/02/2027', holiday: false },
+        { id: '2027-02-08', short: 'L 08/02', full: 'Lunes 08/02/2027 (Feriado Carnaval)', holiday: true },
+        { id: '2027-02-09', short: 'M 09/02', full: 'Martes 09/02/2027 (Feriado Carnaval)', holiday: true },
+        { id: '2027-02-15', short: 'L 15/02', full: 'Lunes 15/02/2027', holiday: false },
+        { id: '2027-02-16', short: 'M 16/02', full: 'Martes 16/02/2027', holiday: false },
+        { id: '2027-02-22', short: 'L 22/02', full: 'Lunes 22/02/2027', holiday: false },
+        { id: '2027-02-23', short: 'M 23/02', full: 'Martes 23/02/2027', holiday: false },
+      ];
+
+      // Registros iniciales precargados del Lunes 23/11/2026
+      const INITIAL_NOV_23 = {
+        1: 'P', 2: 'P', 3: 'P', 4: 'P', 5: 'P', 6: 'P', 7: 'P',
+        8: 'F', 9: '', 10: 'P', 11: 'P', 12: 'P',
+        13: 'F', 14: 'F', 15: 'F', 16: '', 17: 'F', 18: '',
+        19: 'P', 20: 'P', 21: 'P',
+      };
+
+      function createSeedData() {
+        const records = {};
+        DATES.forEach((d) => {
+          records[d.id] = {};
+          STUDENTS.forEach((s) => {
+            if (d.id === '2026-11-23' && !d.holiday) {
+              records[d.id][s.num] = INITIAL_NOV_23[s.num] || '';
+            } else {
+              records[d.id][s.num] = '';
+            }
+          });
+        });
+        return records;
+      }
+
+      let state = {
+        selectedDateId: '2026-11-24', // Por defecto hoy martes 24/11/2026 o navegable fácilmente a L 23/11
+        searchQuery: '',
+        records: {},
+      };
+
+      let toastTimer = null;
+      let pendingConfirmCallback = null;
+
+      // Referencias del DOM
+      const el = {
+        dateStrip: document.getElementById('date-strip'),
+        activeDateLabel: document.getElementById('active-date-label'),
+        activeDateSub: document.getElementById('active-date-sub'),
+        lastSavedIndicator: document.getElementById('last-saved-indicator'),
+        btnPrevDate: document.getElementById('btn-prev-date'),
+        btnNextDate: document.getElementById('btn-next-date'),
+        countP: document.getElementById('count-p'),
+        countF: document.getElementById('count-f'),
+        countA: document.getElementById('count-a'),
+        countJ: document.getElementById('count-j'),
+        countU: document.getElementById('count-u'),
+        quickActions: document.getElementById('quick-actions'),
+        holidayBanner: document.getElementById('holiday-banner'),
+        btnAllP: document.getElementById('btn-all-p'),
+        btnClearDay: document.getElementById('btn-clear-day'),
+        searchInput: document.getElementById('search-input'),
+        btnClearSearch: document.getElementById('btn-clear-search'),
+        studentList: document.getElementById('student-list'),
+        btnExportCsv: document.getElementById('btn-export-csv'),
+        btnSaveJson: document.getElementById('btn-save-json'),
+        btnImportJson: document.getElementById('btn-import-json'),
+        inputImportJson: document.getElementById('input-import-json'),
+        btnPrintHorizontal: document.getElementById('btn-print-horizontal'),
+        btnResetData: document.getElementById('btn-reset-data'),
+        printTableContainer: document.getElementById('print-table-container'),
+        toastBar: document.getElementById('toast-bar'),
+        toastMessage: document.getElementById('toast-message'),
+        toastBadge: document.getElementById('toast-badge'),
+        confirmModal: document.getElementById('confirm-modal'),
+        confirmTitle: document.getElementById('confirm-title'),
+        confirmDesc: document.getElementById('confirm-desc'),
+        confirmCancel: document.getElementById('confirm-cancel'),
+        confirmAccept: document.getElementById('confirm-accept'),
+      };
+
+      // Mostrar aviso flotante breve
+      function showToast(msg, badge = 'GUARDADO') {
+        el.toastMessage.textContent = msg;
+        el.toastBadge.textContent = badge;
+        el.toastBar.classList.remove('opacity-0', 'translate-y-3');
+        el.toastBar.classList.add('opacity-100', 'translate-y-0');
+
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          el.toastBar.classList.remove('opacity-100', 'translate-y-0');
+          el.toastBar.classList.add('opacity-0', 'translate-y-3');
+        }, 1800);
+      }
+
+      // Modal de confirmación accesible (sin confirm())
+      function openConfirm(title, desc, onAccept) {
+        pendingConfirmCallback = onAccept;
+        el.confirmTitle.textContent = title;
+        el.confirmDesc.textContent = desc;
+        el.confirmModal.classList.remove('hidden');
+      }
+
+      function closeConfirm() {
+        pendingConfirmCallback = null;
+        el.confirmModal.classList.add('hidden');
+      }
+
+      // Cargar desde localStorage con respaldo seguro
+      function loadState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed && parsed.records) {
+              state.records = parsed.records;
+              if (parsed.selectedDateId && DATES.some((d) => d.id === parsed.selectedDateId)) {
+                state.selectedDateId = parsed.selectedDateId;
+              }
+              // Asegurar que existan todas las fechas y estudiantes
+              const seed = createSeedData();
+              DATES.forEach((d) => {
+                if (!state.records[d.id]) state.records[d.id] = seed[d.id];
+                STUDENTS.forEach((s) => {
+                  if (typeof state.records[d.id][s.num] !== 'string') {
+                    state.records[d.id][s.num] = seed[d.id][s.num] || '';
+                  }
+                });
+              });
+              return;
+            }
+          }
+        } catch (err) {
+          console.error('Error al leer localStorage:', err);
+        }
+        state.records = createSeedData();
+      }
+
+      // Guardar en localStorage
+      function saveState(notify = false) {
+        try {
+          const nowTime = new Date().toLocaleTimeString('es-EC', {
+            hour: '2-digit',
+            minute: '2-digit',
+          });
+          localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify({
+              selectedDateId: state.selectedDateId,
+              records: state.records,
+              updatedAt: nowTime,
+            })
+          );
+          if (el.lastSavedIndicator) {
+            el.lastSavedIndicator.textContent = `Guardado ${nowTime}`;
+          }
+          if (notify) {
+            showToast('Guardado en el celular · Sin internet', 'AUTO-SAVE');
+          }
+        } catch (err) {
+          console.error('Error al guardar en localStorage:', err);
+          showToast('No se pudo guardar localmente', 'AVISO');
+        }
+      }
+
+      // Calcular totales trimestrales por estudiante
+      function getStudentTotals(studentNum) {
+        let p = 0;
+        let f = 0;
+        let a = 0;
+        let j = 0;
+        DATES.forEach((d) => {
+          if (d.holiday) return;
+          const code = state.records[d.id]?.[studentNum] || '';
+          if (code === 'P') p++;
+          else if (code === 'F') f++;
+          else if (code === 'A') a++;
+          else if (code === 'J') j++;
+        });
+        const recorded = p + f + a + j;
+        // Presente + Justificada cuentan como asistencia efectiva sobre registros tomados
+        const pct = recorded > 0 ? Math.round(((p + j) / recorded) * 100) : 100;
+        return { p, f, a, j, recorded, pct };
+      }
+
+      // Calcular contadores de la fecha activa
+      function getDaySummary(dateId) {
+        const dayMap = state.records[dateId] || {};
+        let p = 0;
+        let f = 0;
+        let a = 0;
+        let j = 0;
+        let u = 0;
+        STUDENTS.forEach((s) => {
+          const code = dayMap[s.num] || '';
+          if (code === 'P') p++;
+          else if (code === 'F') f++;
+          else if (code === 'A') a++;
+          else if (code === 'J') j++;
+          else u++;
+        });
+        return { p, f, a, j, u, marked: STUDENTS.length - u };
+      }
+
+      function getCurrentDateObj() {
+        return DATES.find((d) => d.id === state.selectedDateId) || DATES[0];
+      }
+
+      // Renderizar barra superior de fechas
+      function renderDateStrip() {
+        const current = getCurrentDateObj();
+        el.activeDateLabel.textContent = current.full;
+
+        const summary = getDaySummary(current.id);
+        if (current.holiday) {
+          el.activeDateSub.textContent = 'Feriado nacional • Sin clases';
+          el.quickActions.classList.add('hidden');
+          el.holidayBanner.classList.remove('hidden');
+        } else {
+          el.activeDateSub.textContent = `${summary.marked} de ${STUDENTS.length} registrados`;
+          el.quickActions.classList.remove('hidden');
+          el.holidayBanner.classList.add('hidden');
+        }
+
+        el.dateStrip.innerHTML = '';
+        DATES.forEach((d) => {
+          const isActive = d.id === state.selectedDateId;
+          const sum = getDaySummary(d.id);
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.dataset.dateId = d.id;
+
+          let baseClasses =
+            'shrink-0 min-h-[54px] px-3 py-1.5 rounded-xl border text-left transition flex flex-col justify-between ';
+          if (isActive) {
+            baseClasses += 'bg-slate-900 text-white border-slate-900 shadow-sm ';
+          } else if (d.holiday) {
+            baseClasses += 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100 ';
+          } else if (sum.marked > 0) {
+            baseClasses += 'bg-emerald-50/70 text-slate-800 border-emerald-200 hover:bg-emerald-100/70 ';
+          } else {
+            baseClasses += 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 ';
+          }
+
+          btn.className = baseClasses;
+
+          const badgeText = d.holiday ? 'FER' : `${sum.marked}/${STUDENTS.length}`;
+          const badgeClass = isActive
+            ? 'bg-blue-500 text-white'
+            : d.holiday
+            ? 'bg-amber-200 text-amber-900'
+            : sum.marked === STUDENTS.length
+            ? 'bg-emerald-600 text-white'
+            : 'bg-white text-slate-600 border border-slate-200';
+
+          btn.innerHTML = `
+            <span class="text-xs font-extrabold tracking-tight">${d.short}</span>
+            <span class="text-[10px] font-bold px-1.5 py-0.2 rounded-md self-start mt-1 ${badgeClass}">${badgeText}</span>
+          `;
+
+          btn.addEventListener('click', () => {
+            state.selectedDateId = d.id;
+            saveState(false);
+            renderAll();
+            btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+          });
+
+          el.dateStrip.appendChild(btn);
+        });
+      }
+
+      // Renderizar contadores del día
+      function renderDayCounters() {
+        const sum = getDaySummary(state.selectedDateId);
+        el.countP.textContent = sum.p;
+        el.countF.textContent = sum.f;
+        el.countA.textContent = sum.a;
+        el.countJ.textContent = sum.j;
+        el.countU.textContent = sum.u;
+      }
+
+      // Estilos de botones P, F, A, J
+      function getCodeButtonClasses(code, isSelected, isHoliday) {
+        const disabledAttr = isHoliday ? 'opacity-40 cursor-not-allowed ' : 'active:scale-95 cursor-pointer ';
+        if (!isSelected) {
+          return (
+            disabledAttr +
+            'min-h-[48px] flex-1 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-extrabold text-sm flex flex-col items-center justify-center leading-none transition'
+          );
+        }
+        switch (code) {
+          case 'P':
+            return (
+              disabledAttr +
+              'min-h-[48px] flex-1 rounded-xl border-2 border-emerald-600 bg-emerald-600 text-white font-extrabold text-sm shadow-sm flex flex-col items-center justify-center leading-none transition'
+            );
+          case 'F':
+            return (
+              disabledAttr +
+              'min-h-[48px] flex-1 rounded-xl border-2 border-rose-600 bg-rose-600 text-white font-extrabold text-sm shadow-sm flex flex-col items-center justify-center leading-none transition'
+            );
+          case 'A':
+            return (
+              disabledAttr +
+              'min-h-[48px] flex-1 rounded-xl border-2 border-amber-500 bg-amber-500 text-slate-950 font-extrabold text-sm shadow-sm flex flex-col items-center justify-center leading-none transition'
+            );
+          case 'J':
+            return (
+              disabledAttr +
+              'min-h-[48px] flex-1 rounded-xl border-2 border-sky-600 bg-sky-600 text-white font-extrabold text-sm shadow-sm flex flex-col items-center justify-center leading-none transition'
+            );
+          default:
+            return '';
+        }
+      }
+
+      // Alternar o limpiar código con un toque
+      function toggleStudentCode(studentNum, code) {
+        const dateObj = getCurrentDateObj();
+        if (dateObj.holiday) {
+          showToast('Día feriado: sin registro', 'FERIADO');
+          return;
+        }
+        const dayMap = state.records[state.selectedDateId] || {};
+        const currentCode = dayMap[studentNum] || '';
+        // Si ya tiene el mismo código, se limpia para corregir errores al instante
+        dayMap[studentNum] = currentCode === code ? '' : code;
+        state.records[state.selectedDateId] = dayMap;
+        saveState(true);
+        renderAll();
+      }
+
+      // Renderizar tarjetas de estudiantes
+      function renderStudentList() {
+        const dateObj = getCurrentDateObj();
+        const dayMap = state.records[state.selectedDateId] || {};
+        const query = state.searchQuery.trim().toLowerCase();
+
+        el.btnClearSearch.classList.toggle('hidden', query.length === 0);
+
+        const filtered = STUDENTS.filter((s) => {
+          if (!query) return true;
+          return (
+            s.name.toLowerCase().includes(query) ||
+            String(s.num) === query ||
+            `#${s.num}`.includes(query)
+          );
+        });
+
+        el.studentList.innerHTML = '';
+
+        if (filtered.length === 0) {
+          el.studentList.innerHTML = `
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 text-center text-sm text-slate-500 font-medium">
+              No se encontraron estudiantes con "${state.searchQuery}".
+            </div>
+          `;
+          return;
+        }
+
+        const codeLabels = [
+          { code: 'P', sub: 'Pres.' },
+          { code: 'F', sub: 'Falta' },
+          { code: 'A', sub: 'Atraso' },
+          { code: 'J', sub: 'Just.' },
+        ];
+
+        filtered.forEach((student) => {
+          const activeCode = dayMap[student.num] || '';
+          const totals = getStudentTotals(student.num);
+
+          const card = document.createElement('article');
+          let cardBorder = 'border-slate-200 bg-white';
+          if (activeCode === 'P') cardBorder = 'border-emerald-300 bg-emerald-50/30';
+          else if (activeCode === 'F') cardBorder = 'border-rose-300 bg-rose-50/35';
+          else if (activeCode === 'A') cardBorder = 'border-amber-300 bg-amber-50/35';
+          else if (activeCode === 'J') cardBorder = 'border-sky-300 bg-sky-50/35';
+
+          card.className = `rounded-2xl border ${cardBorder} p-3 shadow-sm transition`;
+
+          const pctBadgeColor =
+            totals.pct >= 90
+              ? 'bg-emerald-100 text-emerald-800'
+              : totals.pct >= 80
+              ? 'bg-amber-100 text-amber-800'
+              : 'bg-rose-100 text-rose-800';
+
+          card.innerHTML = `
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-start gap-2.5 min-w-0">
+                <span class="shrink-0 w-8 h-8 rounded-xl bg-slate-900 text-white font-extrabold text-xs flex items-center justify-center mt-0.5">
+                  ${student.num}
+                </span>
+                <div class="min-w-0">
+                  <h2 class="text-sm font-extrabold text-slate-900 leading-snug break-words">
+                    ${student.name}
+                  </h2>
+                  <div class="flex flex-wrap items-center gap-1.5 mt-1 text-[11px] font-semibold text-slate-600">
+                    <span>P:${totals.p}</span>
+                    <span>•</span>
+                    <span>F:${totals.f}</span>
+                    <span>•</span>
+                    <span>A:${totals.a}</span>
+                    <span>•</span>
+                    <span>J:${totals.j}</span>
+                    ${student.phone ? `<span>• 📞 ${student.phone}</span>` : ''}
+                  </div>
+                </div>
+              </div>
+              <span class="shrink-0 text-[11px] font-extrabold px-2 py-1 rounded-lg ${pctBadgeColor}">
+                ${totals.pct}%
+              </span>
+            </div>
+
+            <div class="grid grid-cols-4 gap-2 mt-3">
+              ${codeLabels
+                .map((item) => {
+                  const isSel = activeCode === item.code;
+                  const cls = getCodeButtonClasses(item.code, isSel, dateObj.holiday);
+                  return `
+                    <button
+                      type="button"
+                      data-student="${student.num}"
+                      data-code="${item.code}"
+                      ${dateObj.holiday ? 'disabled' : ''}
+                      class="${cls}"
+                    >
+                      <span>${item.code}</span>
+                      <span class="text-[9px] font-bold mt-0.5 opacity-85">${item.sub}</span>
+                    </button>
+                  `;
+                })
+                .join('')}
+            </div>
+          `;
+
+          card.querySelectorAll('button[data-code]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+              const sNum = Number(btn.dataset.student);
+              const cVal = btn.dataset.code;
+              toggleStudentCode(sNum, cVal);
+            });
+          });
+
+          el.studentList.appendChild(card);
+        });
+      }
+
+      // Renderizar tabla horizontal para impresión (A4 Landscape)
+      function renderPrintTable() {
+        const headers = DATES.map((d) => `<th class="${d.holiday ? 'bg-amber-100' : 'bg-slate-100'}">${d.short}</th>`).join('');
+        const rows = STUDENTS.map((s) => {
+          const totals = getStudentTotals(s.num);
+          const cells = DATES.map((d) => {
+            if (d.holiday) return '<td class="bg-amber-50 font-bold">FER</td>';
+            const val = state.records[d.id]?.[s.num] || '';
+            return `<td class="font-bold">${val}</td>`;
+          }).join('');
+
+          return `
+            <tr>
+              <td class="font-bold">${s.num}</td>
+              <td class="student-col font-semibold">${s.name}</td>
+              ${cells}
+              <td class="font-bold">${totals.p}</td>
+              <td class="font-bold">${totals.f}</td>
+              <td class="font-bold">${totals.a}</td>
+              <td class="font-bold">${totals.j}</td>
+              <td class="font-bold">${totals.pct}%</td>
+            </tr>
+          `;
+        }).join('');
+
+        el.printTableContainer.innerHTML = `
+          <table class="print-table">
+            <thead>
+              <tr>
+                <th class="bg-slate-200">N.º</th>
+                <th class="student-col bg-slate-200">NÓMINA DE ESTUDIANTES (2DO CONT A)</th>
+                ${headers}
+                <th class="bg-slate-200">P</th>
+                <th class="bg-slate-200">F</th>
+                <th class="bg-slate-200">A</th>
+                <th class="bg-slate-200">J</th>
+                <th class="bg-slate-200">%</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        `;
+      }
+
+      function renderAll() {
+        renderDateStrip();
+        renderDayCounters();
+        renderStudentList();
+        renderPrintTable();
+      }
+
+      // Exportar CSV compatible con Excel (UTF-8 con BOM y punto y coma para Excel en español)
+      function exportToCsv() {
+        try {
+          const sep = ';';
+          const headerRow = [
+            'N.º',
+            'Estudiante',
+            'Teléfono',
+            ...DATES.map((d) => (d.holiday ? `${d.short} (FER)` : d.short)),
+            'Total P',
+            'Total F',
+            'Total A',
+            'Total J',
+            '% Asistencia',
+          ];
+
+          const lines = [
+            ['UNIDAD EDUCATIVA "DR. ENRIQUE NOBOA ARÍZAGA" - 2DO CONT A - MATEMÁTICA - 3ER TRIMESTRE (2026-2027)'].join(sep),
+            headerRow.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(sep),
+          ];
+
+          STUDENTS.forEach((s) => {
+            const totals = getStudentTotals(s.num);
+            const dateVals = DATES.map((d) => {
+              if (d.holiday) return 'FER';
+              return state.records[d.id]?.[s.num] || '';
+            });
+            const row = [
+              s.num,
+              s.name,
+              s.phone || '',
+              ...dateVals,
+              totals.p,
+              totals.f,
+              totals.a,
+              totals.j,
+              `${totals.pct}%`,
+            ];
+            lines.push(row.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(sep));
+          });
+
+          const bom = '\uFEFF';
+          const blob = new Blob([bom + lines.join('\r\n')], {
+            type: 'text/csv;charset=utf-8;',
+          });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = 'Asistencia_2DO_CONT_A_3er_Trimestre_2026-2027.csv';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+          showToast('Archivo CSV exportado para Excel', 'CSV LISTO');
+        } catch (err) {
+          console.error('Error exportando CSV:', err);
+          showToast('No se pudo exportar el CSV', 'ERROR');
+        }
+      }
+
+      // Exportar respaldo completo en formato .JSON para conservar o transferir al llegar a casa
+      function exportJsonBackup() {
+        try {
+          const payload = {
+            app: 'Asistencia_2DO_CONT_A_3er_Trimestre_2026_2027',
+            institution: 'Unidad Educativa "Dr. Enrique Noboa Arízaga"',
+            course: 'Segundo de Bachillerato - Contabilidad "A" (2DO CONT A)',
+            subject: 'Matemática',
+            teacher: 'Msc. Edwin Lliguipuma E.',
+            exportedAt: new Date().toISOString(),
+            selectedDateId: state.selectedDateId,
+            records: state.records,
+          };
+          const blob = new Blob([JSON.stringify(payload, null, 2)], {
+            type: 'application/json;charset=utf-8;',
+          });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = 'Respaldo_Asistencia_2DO_CONT_A_2026-2027.json';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+          showToast('Respaldo .JSON descargado', 'RESPALDO');
+        } catch (err) {
+          console.error('Error exportando JSON:', err);
+          showToast('No se pudo generar el respaldo .JSON', 'ERROR');
+        }
+      }
+
+      // Importar respaldo .JSON previamente guardado
+      function handleImportJsonFile(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          try {
+            const parsed = JSON.parse(String(e.target.result || '{}'));
+            if (!parsed || typeof parsed.records !== 'object') {
+              showToast('Archivo .JSON no válido', 'ERROR');
+              return;
+            }
+            openConfirm(
+              'Importar respaldo .JSON',
+              `Se cargarán los registros desde "${file.name}" y se guardarán en este celular.`,
+              () => {
+                const seed = createSeedData();
+                DATES.forEach((d) => {
+                  if (!parsed.records[d.id]) {
+                    parsed.records[d.id] = seed[d.id];
+                  } else {
+                    STUDENTS.forEach((s) => {
+                      const val = parsed.records[d.id][s.num];
+                      parsed.records[d.id][s.num] = ['P', 'F', 'A', 'J', ''].includes(val) ? val : '';
+                    });
+                  }
+                });
+                state.records = parsed.records;
+                if (parsed.selectedDateId && DATES.some((d) => d.id === parsed.selectedDateId)) {
+                  state.selectedDateId = parsed.selectedDateId;
+                }
+                saveState(true);
+                renderAll();
+                showToast('Respaldo importado con éxito', 'IMPORTADO');
+              }
+            );
+          } catch (err) {
+            console.error('Error al leer respaldo .JSON:', err);
+            showToast('Error al leer el archivo .JSON', 'ERROR');
+          } finally {
+            event.target.value = '';
+          }
+        };
+        reader.readAsText(file, 'utf-8');
+      }
+
+      // Listeners de eventos
+      function bindEvents() {
+        el.btnPrevDate.addEventListener('click', () => {
+          const idx = DATES.findIndex((d) => d.id === state.selectedDateId);
+          if (idx > 0) {
+            state.selectedDateId = DATES[idx - 1].id;
+            saveState(false);
+            renderAll();
+          }
+        });
+
+        el.btnNextDate.addEventListener('click', () => {
+          const idx = DATES.findIndex((d) => d.id === state.selectedDateId);
+          if (idx < DATES.length - 1) {
+            state.selectedDateId = DATES[idx + 1].id;
+            saveState(false);
+            renderAll();
+          }
+        });
+
+        // "Todos P" marca como Presente a quienes no tienen marca en la fecha seleccionada
+        el.btnAllP.addEventListener('click', () => {
+          const dateObj = getCurrentDateObj();
+          if (dateObj.holiday) return;
+          const dayMap = state.records[state.selectedDateId] || {};
+          let changed = 0;
+          STUDENTS.forEach((s) => {
+            if (!dayMap[s.num]) {
+              dayMap[s.num] = 'P';
+              changed++;
+            }
+          });
+          state.records[state.selectedDateId] = dayMap;
+          saveState(true);
+          renderAll();
+          showToast(
+            changed > 0 ? `${changed} estudiantes marcados con P` : 'Todos ya estaban marcados',
+            'TODOS P'
+          );
+        });
+
+        el.btnClearDay.addEventListener('click', () => {
+          const dateObj = getCurrentDateObj();
+          if (dateObj.holiday) return;
+          openConfirm(
+            `Limpiar registros de ${dateObj.short}`,
+            `Se borrarán todas las marcas de asistencia de ${dateObj.full}.`,
+            () => {
+              state.records[state.selectedDateId] = {};
+              STUDENTS.forEach((s) => {
+                state.records[state.selectedDateId][s.num] = '';
+              });
+              saveState(true);
+              renderAll();
+              showToast(`Día ${dateObj.short} limpiado`, 'LIMPIO');
+            }
+          );
+        });
+
+        el.searchInput.addEventListener('input', (e) => {
+          state.searchQuery = e.target.value;
+          renderStudentList();
+        });
+
+        el.btnClearSearch.addEventListener('click', () => {
+          state.searchQuery = '';
+          el.searchInput.value = '';
+          renderStudentList();
+          el.searchInput.focus();
+        });
+
+        el.btnExportCsv.addEventListener('click', exportToCsv);
+        el.btnSaveJson.addEventListener('click', exportJsonBackup);
+        el.btnImportJson.addEventListener('click', () => el.inputImportJson.click());
+        el.inputImportJson.addEventListener('change', handleImportJsonFile);
+
+        el.btnPrintHorizontal.addEventListener('click', () => {
+          renderPrintTable();
+          showToast('Abriendo vista horizontal para imprimir', 'IMPRIMIR');
+          setTimeout(() => {
+            window.print();
+          }, 120);
+        });
+
+        el.btnResetData.addEventListener('click', () => {
+          openConfirm(
+            'Restaurar datos iniciales',
+            'Volverán los registros originales del lunes 23/11/2026 y se borrarán ediciones posteriores en este celular.',
+            () => {
+              state.records = createSeedData();
+              state.selectedDateId = '2026-11-23';
+              saveState(true);
+              renderAll();
+              showToast('Datos restaurados al estado inicial', 'REINICIADO');
+            }
+          );
+        });
+
+        el.confirmCancel.addEventListener('click', closeConfirm);
+        el.confirmAccept.addEventListener('click', () => {
+          const cb = pendingConfirmCallback;
+          closeConfirm();
+          if (typeof cb === 'function') cb();
+        });
+      }
+
+      // Inicialización
+      window.addEventListener('DOMContentLoaded', () => {
+        loadState();
+        bindEvents();
+        renderAll();
+      });
+    })();
+  </script>
+</body>
+</html>
